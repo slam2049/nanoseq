@@ -106,6 +106,7 @@ include { QCAT                  } from '../modules/local/qcat'
 include { BAM_RENAME            } from '../modules/local/bam_rename'
 include { BAMBU                 } from '../modules/local/bambu'
 include { MULTIQC               } from '../modules/local/multiqc'
+include { CONVERT_TO_FASTQ      } from '../modules/local/convert'
 
 /*
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -135,6 +136,7 @@ include { RNA_FUSIONS_JAFFAL               } from '../subworkflows/local/rna_fus
  */
 include { NANOLYSE                    } from '../modules/nf-core/nanolyse/main'
 include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/custom/dumpsoftwareversions/main'
+include { CONVERT_TO_FASTQ } from '../convert.nf'
 
 /*
  * SUBWORKFLOW: Consisting entirely of nf-core/modules
@@ -203,8 +205,16 @@ workflow NANOSEQ{
     } else {
         if (!params.skip_alignment) {
             ch_sample
-                .map { it -> if (it[6].toString().endsWith('.gz')) [ it[0], it[6], it[2], it[1], it[4], it[5] ] }
-                .set { ch_fastq }
+                .map { it -> if (it[6].toString().endsWith('.gz|.bam')) [ it[0], it[6], it[2], it[1], it[4], it[5] ] }
+                .set { ch_input_files }
+
+            ch_input_files.map { it -> [ it[0], it[1] ] }
+                          .set{ch_convert_input}
+
+
+            CONVERT_TO_FASTQ(ch_convert_input)
+            ch_fastq = CONVERT_TO_FASTQ.out.fastq
+
         } else {
             ch_fastq = Channel.empty()
         }
