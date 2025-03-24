@@ -5,10 +5,10 @@
 include { MEDAKA_VARIANT                        } from '../../modules/local/medaka_variant'
 include { TABIX_BGZIP as MEDAKA_BGZIP_VCF       } from '../../modules/nf-core/tabix/bgzip/main'
 include { TABIX_TABIX as MEDAKA_TABIX_VCF       } from '../../modules/nf-core/tabix/tabix/main'
-include { DEEPVARIANT                           } from '../../modules/local/deepvariant'
 include { TABIX_TABIX as DEEPVARIANT_TABIX_VCF  } from '../../modules/nf-core/tabix/tabix/main'
 include { TABIX_TABIX as DEEPVARIANT_TABIX_GVCF } from '../../modules/nf-core/tabix/tabix/main'
 include { PEPPER_MARGIN_DEEPVARIANT             } from '../../modules/local/pepper_margin_deepvariant'
+include { DEEPVARIANT_RUNDEEPVARIANT } from '../../modules/nf-core/deepvariant/rundeepvariant/main'
 
 workflow SHORT_VARIANT_CALLING {
 
@@ -54,24 +54,31 @@ workflow SHORT_VARIANT_CALLING {
         /*
         * Call variants with deepvariant
         */
-        DEEPVARIANT( ch_view_sortbam, ch_fasta, ch_fai )
-        ch_short_calls_vcf  = DEEPVARIANT.out.vcf
-        ch_short_calls_gvcf = DEEPVARIANT.out.gvcf
-        ch_versions = ch_versions.mix(DEEPVARIANT.out.versions)
+        // Create empty channels for optional inputs
+        ch_intervals = Channel.value([])
+        ch_gzi = Channel.value([])
+        ch_par_bed = Channel.value([])
 
-        /*
-         * Index deepvariant vcf.gz
-         */
-        DEEPVARIANT_TABIX_VCF( ch_short_calls_vcf )
-        ch_short_calls_vcf_tbi  = DEEPVARIANT_TABIX_VCF.out.tbi
-        ch_versions = ch_versions.mix(DEEPVARIANT_TABIX_VCF.out.versions)
+        // Prepare meta channels
+        ch_view_sortbam_meta = ch_view_sortbam.map { meta, bam, bai -> [meta, bam, bai, []] }
+        ch_fasta_meta = ch_fasta.map { it -> [[:], it] }
+        ch_fai_meta = ch_fai.map { it -> [[:], it] }
+        ch_gzi_meta = ch_gzi.map { it -> [[:], it] }
+        ch_par_bed_meta = ch_par_bed.map { it -> [[:], it] }
 
-        /*
-         * Index deepvariant g.vcf.gz
-         */
-        DEEPVARIANT_TABIX_GVCF( ch_short_calls_gvcf )
-        ch_short_calls_gvcf_tbi  = DEEPVARIANT_TABIX_GVCF.out.tbi
-        ch_versions = ch_versions.mix(DEEPVARIANT_TABIX_VCF.out.versions)
+        DEEPVARIANT_RUNDEEPVARIANT(
+            ch_view_sortbam_meta,
+            ch_fasta_meta,
+            ch_fai_meta,
+            ch_gzi_meta,
+            ch_par_bed_meta
+        )
+
+        ch_short_calls_vcf = DEEPVARIANT_RUNDEEPVARIANT.out.vcf
+        ch_short_calls_vcf_tbi = DEEPVARIANT_RUNDEEPVARIANT.out.vcf_tbi
+        ch_short_calls_gvcf = DEEPVARIANT_RUNDEEPVARIANT.out.gvcf
+        ch_short_calls_gvcf_tbi = DEEPVARIANT_RUNDEEPVARIANT.out.gvcf_tbi
+        ch_versions = ch_versions.mix(DEEPVARIANT_RUNDEEPVARIANT.out.versions)
 
     } else {
 
