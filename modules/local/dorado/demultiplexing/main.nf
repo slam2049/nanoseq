@@ -16,12 +16,11 @@
 //               list (`[]`) instead of a file can be used to work around this issue.
 
 process DORADO_DEMULTIPLEXING {
-    tag "$meta.id"
     label 'process_high'
 
     // TODO nf-core: See section in main README for further information regarding finding and adding container addresses to the section below.
     conda "${moduleDir}/environment.yml"
-    container "ontresearch/dorado:sha256:76393a85731bfade1b3e33bd2d674254cbbea5072364b1f0fc93c70668e9b160"
+    container "ontresearch/dorado@sha256:76393a85731bfade1b3e33bd2d674254cbbea5072364b1f0fc93c70668e9b160"
 
     input:
     // TODO nf-core: Where applicable all sample-specific information e.g. "id", "single_end", "read_group"
@@ -64,8 +63,10 @@ process DORADO_DEMULTIPLEXING {
         $both_ends_option \\
         $args \\
         --output-dir . \\
+        --sample-sheet $samplesheet \\
+        --emit-fastq \\
         $reads && \\
-    gzip .*.fastq
+    gzip *.fastq
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

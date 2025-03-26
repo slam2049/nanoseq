@@ -202,8 +202,8 @@ workflow NANOSEQ{
     /*
      * SUBWORKFLOW: Read in samplesheet, validate and stage input files
      */
-    INPUT_CHECK ( ch_input, ch_input_path )
-        .set { ch_sample }
+    // INPUT_CHECK ( ch_input, ch_input_path )
+    //     .set { ch_sample }
 
         // Validate input parameters
     validateParameters() // get rid of old code up at top
@@ -213,6 +213,7 @@ workflow NANOSEQ{
 
     // Create a new channel of metadata from a sample sheet passed to the pipeline through the --input parameter
     ch_input = Channel.fromList(samplesheetToList(params.input, "assets/schema_input.json"))
+
 
     if (!params.skip_demultiplexing) {
 
