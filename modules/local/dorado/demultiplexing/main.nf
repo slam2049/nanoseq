@@ -20,7 +20,7 @@ process DORADO_DEMULTIPLEXING {
 
     // TODO nf-core: See section in main README for further information regarding finding and adding container addresses to the section below.
     conda "${moduleDir}/environment.yml"
-    container "ontresearch/dorado@sha256:76393a85731bfade1b3e33bd2d674254cbbea5072364b1f0fc93c70668e9b160"
+    container "docker.io/ontresearch/dorado@sha256:76393a85731bfade1b3e33bd2d674254cbbea5072364b1f0fc93c70668e9b160"
 
     input:
     // TODO nf-core: Where applicable all sample-specific information e.g. "id", "single_end", "read_group"
@@ -64,7 +64,6 @@ process DORADO_DEMULTIPLEXING {
         $args \\
         --output-dir . \\
         --sample-sheet $samplesheet \\
-        --emit-fastq \\
         $reads && \\
     gzip *.fastq
 
@@ -75,15 +74,6 @@ process DORADO_DEMULTIPLEXING {
     """
 
     stub:
-    def args = task.ext.args ?: ''
-    def prefix = task.ext.prefix ?: "${meta.id}"
-    def trim_option = trim ? '' : '--no-trim'
-    def both_ends_option = barcode_both_ends ? '--barcode-both-ends' : ''
-    def summary_option = args.contains("--emit-summary") ? "--emit-summary ${prefix}_summary.tsv" : ''
-    // TODO nf-core: A stub section should mimic the execution of the original module as best as possible
-    //               Have a look at the following examples:
-    //               Simple example: https://github.com/nf-core/modules/blob/818474a292b4860ae8ff88e149fbcda68814114d/modules/nf-core/bcftools/annotate/main.nf#L47-L63
-    //               Complex example: https://github.com/nf-core/modules/blob/818474a292b4860ae8ff88e149fbcda68814114d/modules/nf-core/bedtools/split/main.nf#L38-L54
     """
     touch ${prefix}.fastq
 

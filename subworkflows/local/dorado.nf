@@ -7,7 +7,6 @@ workflow DORADO {
     input_files //path to dir containing fastqs/ubams
     samplesheet
     reference_fasta
-    // ath reference_fai
     barcode_kit
     barcode_both_ends
 
@@ -34,14 +33,21 @@ workflow DORADO {
                         alias: row.alias
                     ]
                     return [row.alias, meta]  // Return metadata and alias for matching
-                }
+                }//.view()
+
     //restructure fastq channel into alias, fastq 
-    sample_fastq_alias = sample_fastq.map { file -> 
-        def alias = file.baseName.replaceAll('.fastq.gz','')
-        return [alias, file]
-    }
-    //join sample fastqs and meta maps using alias as matching key
+    sample_fastq_alias = sample_fastq
+        .flatMap { it } //flatten list
+        .map { file -> 
+            def alias = file.baseName.replaceAll(/.fastq/,"")
+                                     .replaceAll(/unknown_run_id_/,"")
+            return [alias, file]
+    }//.view()
+
+    //join sample fastqs and meta maps using alias as matching key, and remap to format as [meta,file]
     sample_fastq_ch = meta.join(sample_fastq_alias)
+                          .map { alias, meta, file -> [meta, file]}
+                          .view()
 
     //chopper fastq trimming
     CHOPPER(sample_fastq_ch, reference_fasta)

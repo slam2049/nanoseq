@@ -1,0 +1,3 @@
+position_id,flow_cell_id,kit,sample_id,experiment_id,barcode,alias
+P2S-01069-A,PBA43828,EXP-NBD103,sample1,experiment1,barcode06,sample1
+P2S-01069-A,PBA43828,EXP-NBD103,sample2,experiment1,barcode12,sample2

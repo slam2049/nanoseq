@@ -17,7 +17,7 @@ process DORADO_ALIGNER {
 
     // container not available on bioconda so pulled from docker.
     conda "${moduleDir}/environment.yml"
-    container "ontresearch/dorado@sha256:76393a85731bfade1b3e33bd2d674254cbbea5072364b1f0fc93c70668e9b160"
+    container "docker.io/ontresearch/dorado@sha256:76393a85731bfade1b3e33bd2d674254cbbea5072364b1f0fc93c70668e9b160"
 
     input:
     tuple val(meta), path(fastq)
